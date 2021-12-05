@@ -17,6 +17,7 @@ def requestWithErrorHandling(request_type):
 
 filename = input("Enter file path: ")
 api_key = ""
+
 with open(filename,"rb") as file:
     file_bytes = file.read()
     sha256_hash = hashlib.sha256(file_bytes).hexdigest()
@@ -28,8 +29,8 @@ headers = {
 
 response = requestWithErrorHandling("GET")
 data = response.json()
-# metadefender's hash not found code is 404003
 
+# metadefender's hash not found code is 404003
 if 'error' in data.keys() and data['error']['code'] == 404003:
     #file upload
     url = "https://api.metadefender.com/v4/file"
@@ -45,7 +46,7 @@ if 'error' in data.keys() and data['error']['code'] == 404003:
     response = requestWithErrorHandling("POST")
     data = response.json()
     
-    #pull response from data id'
+    #pull response from data id
     waiting_time = 1
     while 'status' in data.keys() and data['status'] == "inqueue":
         time.sleep(waiting_time)
@@ -73,12 +74,20 @@ if 'error' in data.keys() and data['error']['code'] == 404003:
         data = response.json()
         waiting_time = waiting_time*1.5 
 else:
-    print("Found cashed file")            
-            
+    if 'error' in data.keys():
+        print("Error: {} {}".format(data['error']['code'],data['error']['messages']))
+        raise SystemExit()
+    else:    
+        print("Found cashed file") 
 
-print("Filename: "+filename)
+#Printing results
+print("File scanned: "+filename)
 print("Overall result: "+data["scan_results"]["scan_all_result_a"])
 for key in data["scan_results"]["scan_details"]:
     print("Engine: "+key)
     for subkey in data["scan_results"]["scan_details"][key]:
-        print("{}: {}".format(subkey,data["scan_results"]["scan_details"][key][subkey]))
+        if subkey == "threat_found" and data["scan_results"]["scan_details"][key][subkey] == "":
+            print("{}: None".format(subkey,data["scan_results"]["scan_details"][key][subkey]))
+        else:
+            print("{}: {}".format(subkey,data["scan_results"]["scan_details"][key][subkey]))    
+        
