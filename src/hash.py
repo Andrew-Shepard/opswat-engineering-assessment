@@ -2,10 +2,17 @@ import hashlib
 import requests
 import json
 import time
-
+import pyperclip
 def requestWithErrorHandling(request_type):
     try:
-        r = requests.request(request_type, url, headers=headers)
+        if request_type == "POST":
+            r = requests.request("POST", url, headers=headers, data=payload)
+        else:
+            if request_type == "GET":        
+                r = requests.request(request_type, url, headers=headers)
+            else:
+                print("Invalid request type!")
+                raise SystemExit()            
     except requests.exceptions.Timeout:
         print("Request timed out!")
     except requests.exceptions.TooManyRedirects:
@@ -42,7 +49,7 @@ if 'error' in data.keys() and data['error']['code'] == 404003:
         file_bytes = file.read()
         sha256_hash = hashlib.sha256(file_bytes).hexdigest()
         payload = file_bytes
-
+    print (payload)
     response = requestWithErrorHandling("POST")
     data = response.json()
     
@@ -68,7 +75,6 @@ if 'error' in data.keys() and data['error']['code'] == 404003:
         "apikey": "{}".format(api_key),
         "x-file-metadata": "0"
         }
-        print()
         response = requestWithErrorHandling("GET")
         
         data = response.json()
@@ -79,7 +85,6 @@ else:
         raise SystemExit()
     else:    
         print("Found cashed file") 
-
 #Printing results
 print("File scanned: "+filename)
 print("Overall result: "+data["scan_results"]["scan_all_result_a"])
