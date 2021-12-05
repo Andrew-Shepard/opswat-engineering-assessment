@@ -3,6 +3,18 @@ import requests
 import json
 import time
 
+def requestWithErrorHandling(request_type):
+    try:
+        r = requests.request(request_type, url, headers=headers)
+    except requests.exceptions.Timeout:
+        print("Request timed out!")
+    except requests.exceptions.TooManyRedirects:
+        print("Invalid request URL!")
+    except requests.exceptions.RequestException as e:
+        print("Unexpected request behavior!")
+        raise SystemExit(e)
+    return r
+
 filename = input("Enter file path: ")
 api_key = ""
 with open(filename,"rb") as file:
@@ -14,7 +26,7 @@ headers = {
  "apikey": "{}".format(api_key)
 }
 
-response = requests.request("GET", url, headers=headers)
+response = requestWithErrorHandling("GET")
 data = response.json()
 # metadefender's hash not found code is 404003
 
@@ -30,7 +42,7 @@ if 'error' in data.keys() and data['error']['code'] == 404003:
         sha256_hash = hashlib.sha256(file_bytes).hexdigest()
         payload = file_bytes
 
-    response = postRequest()
+    response = requestWithErrorHandling("POST")
     data = response.json()
     
     #pull response from data id'
@@ -43,7 +55,7 @@ if 'error' in data.keys() and data['error']['code'] == 404003:
         "x-file-metadata": "0"
         }
 
-        response = getRequest()
+        response = requestWithErrorHandling("GET")
         
         data = response.json()
         waiting_time = waiting_time*1.5
@@ -56,7 +68,7 @@ if 'error' in data.keys() and data['error']['code'] == 404003:
         "x-file-metadata": "0"
         }
         print()
-        response = getRequest()
+        response = requestWithErrorHandling("GET")
         
         data = response.json()
         waiting_time = waiting_time*1.5 
@@ -70,27 +82,3 @@ for key in data["scan_results"]["scan_details"]:
     print("Engine: "+key)
     for subkey in data["scan_results"]["scan_details"][key]:
         print("{}: {}".format(subkey,data["scan_results"]["scan_details"][key][subkey]))
-
-def getRequest():
-    try:
-        r = requests.request("GET", url, headers=headers)
-    except requests.exceptions.Timeout:
-        print("Request timed out!")
-    except requests.exceptions.TooManyRedirects:
-        print("Invalid request URL!")
-    except requests.exceptions.RequestException as e:
-        print("Unexpected request behavior!")
-        raise SystemExit(e)
-    return r
-
-def postRequest():
-    try:
-        r = requests.request("POST", url, headers=headers)
-    except requests.exceptions.Timeout:
-        print("Request timed out!")
-    except requests.exceptions.TooManyRedirects:
-        print("Invalid request URL!")
-    except requests.exceptions.RequestException as e:
-        print("Unexpected request behavior!")
-        raise SystemExit(e)
-    return r
