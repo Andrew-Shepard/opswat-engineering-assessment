@@ -2,7 +2,7 @@ import hashlib
 import requests
 import json
 import time
-import pyperclip
+
 def requestWithErrorHandling(request_type):
     try:
         if request_type == "POST":
