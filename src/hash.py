@@ -49,7 +49,6 @@ if 'error' in data.keys() and data['error']['code'] == 404003:
         file_bytes = file.read()
         sha256_hash = hashlib.sha256(file_bytes).hexdigest()
         payload = file_bytes
-    print (payload)
     response = requestWithErrorHandling("POST")
     data = response.json()
     
