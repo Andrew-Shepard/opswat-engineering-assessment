@@ -2,8 +2,9 @@ import hashlib
 import requests
 import json
 import time
+url =""
 
-def requestWithErrorHandling(request_type):
+def __requestWithErrorHandling(request_type):
     try:
         if request_type == "POST":
             r = requests.request("POST", url, headers=headers, data=payload)
@@ -21,7 +22,7 @@ def requestWithErrorHandling(request_type):
         raise SystemExit(e)
     return r
 
-def fileUpload():
+def __fileUpload():
     url = "https://api.metadefender.com/v4/file"
     headers = {
     "apikey": "{}".format(api_key),
@@ -31,9 +32,9 @@ def fileUpload():
         file_bytes = file.read()
         sha256_hash = hashlib.sha256(file_bytes).hexdigest()
         payload = file_bytes
-    response = requestWithErrorHandling("POST")
+    response = __requestWithErrorHandling("POST")
     data = response.json()
-def getFileUploadResponse():
+def __getFileUploadResponse():
     waiting_time = 1
     while 'status' in data.keys() and data['status'] == "inqueue":
         time.sleep(waiting_time)
@@ -60,7 +61,7 @@ def getFileUploadResponse():
         data = response.json()
         waiting_time = waiting_time*1.5 
 
-def printResults():
+def __printResults():
     print("File scanned: "+filename)
     print("Overall result: "+data["scan_results"]["scan_all_result_a"])
     for key in data["scan_results"]["scan_details"]:
@@ -71,7 +72,7 @@ def printResults():
             else:
                 print("{}: {}".format(subkey,data["scan_results"]["scan_details"][key][subkey])) 
 
-def readFile(file_path):
+def __readFile(file_path):
     with open(file_path,"rb") as file:
         file_bytes = file.read()
         sha256_hash = hashlib.sha256(file_bytes).hexdigest()
@@ -85,17 +86,17 @@ if __name__ == "__main__":
     filename = input("Enter file path: ")
     api_key = ""
 
-    readFile(filename)
+    __readFile(filename)
 
-    response = requestWithErrorHandling("GET")
+    response = __requestWithErrorHandling("GET")
     data = response.json()
 
     # metadefender's hash not found code is 404003
     if 'error' in data.keys() and data['error']['code'] == 404003:
         #file upload
-        fileUpload()
+        __fileUpload()
         #pull response from data id
-        getFileUploadResponse()
+        __getFileUploadResponse()
     else:
         if 'error' in data.keys():
             print("Error: {} {}".format(data['error']['code'],data['error']['messages']))
@@ -103,5 +104,5 @@ if __name__ == "__main__":
         else:    
             print("Found cashed file") 
     #Printing results
-    printResults()
+    __printResults()
         
